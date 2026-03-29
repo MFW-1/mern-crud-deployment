@@ -24,26 +24,26 @@ const Student = mongoose.model("Student", StudentSchema);
 // Routes
 
 // GET all students
-app.get("/students", async (req, res) => {
+app.get("/api/students", async (req, res) => {
     const students = await Student.find();
     res.json(students);
 });
 
 // POST create student
-app.post("/students", async (req, res) => {
+app.post("/api/students", async (req, res) => {
     const student = new Student(req.body);
     await student.save();
     res.json(student);
 });
 
 // PUT update student
-app.put("/students/:id", async (req, res) => {
+app.put("/api/students/:id", async (req, res) => {
     const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(student);
 });
 
 // DELETE student
-app.delete("/students/:id", async (req, res) => {
+app.delete("/api/students/:id", async (req, res) => {
     await Student.findByIdAndDelete(req.params.id);
     res.json({ message: "Student deleted" });
 });
