@@ -1,24 +1,30 @@
-name: Deploy to EC2
+name: Deploy Fullstack to EC2
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to server
+      - uses: actions/checkout@v3
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd mern-crud
+            cd /home/ubuntu/apps/YOUR_REPO
             git pull origin main
+
+            # Backend
             cd backend
             npm install
-            pm2 restart all
+            pm2 restart mern-backend || pm2 start server.js --name mern-backend
+
+            # Frontend
+            cd ../frontend
+            npm install
+            npm run build
