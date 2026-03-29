@@ -1,23 +1,50 @@
-- name: Deploy via SSH
-  uses: appleboy/ssh-action@v1.0.0
-  with:
-    host: ${{ secrets.HOST }}
-    username: ${{ secrets.USERNAME }}
-    key: ${{ secrets.SSH_KEY }}
-    port: ${{ secrets.PORT }}
-    script: |
-      # Go to your project folder
-      cd /home/ubuntu/apps/mern-crud-deployment
+name: Deploy MERN App
 
-      # Pull latest code
-      git pull origin main
+on:
+  push:
+    branches:
+      - main  # Trigger deploy when pushing to main branch
 
-      # Backend
-      cd backend
-      npm install
-      pm2 restart mern-backend || pm2 start server.js --name mern-backend
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-      # Frontend
-      cd ../frontend
-      npm install
-      npm run build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}          # Your server IP
+          username: ${{ secrets.USERNAME }}  # Your server username (ubuntu)
+          key: ${{ secrets.SSH_KEY }}        # Private key
+          port: ${{ secrets.PORT }}          # Usually 22
+          script: |
+            echo "🔹 Starting deployment"
+
+            # Go to project folder
+            cd /home/ubuntu/apps/mern-crud-deployment || exit
+
+            echo "🔹 Pull latest code"
+            git reset --hard
+            git clean -fd
+            git pull origin main
+
+            # Backend
+            echo "🔹 Installing backend dependencies"
+            cd backend
+            npm install
+
+            echo "🔹 Restarting backend with PM2"
+            pm2 restart mern-backend || pm2 start server.js --name mern-backend
+
+            # Frontend
+            echo "🔹 Installing frontend dependencies"
+            cd ../frontend
+            npm install
+
+            echo "🔹 Building frontend"
+            npm run build
+
+            echo "🔹 Deployment finished"
